@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uni Health Center · Staff & Admin Portal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--pri:#0f5e6b;--pri-d:#0a4550;--pri-l:#1b8c8c;--bg:#f4f7fa;--bd:#e2ecf1;--tx:#0b3b4f;--mu:#5b7c8a;--bad:#c0492f}
+body{font-family:'Segoe UI',system-ui,Roboto,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding:1.2rem;line-height:1.5}
+.hide{display:none!important}
+input,select,textarea{font:inherit;color:var(--tx);padding:.65rem .9rem;border:1.5px solid var(--bd);border-radius:10px;background:#fafcfd;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--pri-l);background:#fff}
+label{display:block;font-size:.72rem;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.25rem}
+.btn{font:inherit;font-size:.85rem;font-weight:700;padding:.6rem 1.1rem;border:0;border-radius:10px;cursor:pointer;background:var(--pri);color:#fff}
+.btn:hover{background:var(--pri-d)}
+.btn.ghost{background:#fff;color:var(--pri);border:1.5px solid var(--bd)}
+.btn.bad{background:#fff;color:var(--bad);border:1.5px solid #f3d6ce}
+.btn.sm{padding:.3rem .65rem;font-size:.76rem;border-radius:7px}
+
+/* login */
+#loginScreen{min-height:calc(100vh - 2.4rem);display:flex;align-items:center;justify-content:center}
+.login-card{background:#fff;border:1px solid var(--bd);border-radius:20px;padding:2.2rem 2rem;width:100%;max-width:440px;box-shadow:0 20px 50px rgba(11,59,79,.13)}
+.login-card h1{font-size:1.35rem;text-align:center}
+.login-card .sub{text-align:center;color:var(--mu);font-size:.85rem;margin-bottom:1.2rem}
+.fld{margin-bottom:1rem}.fld input{width:100%}
+.captcha-row{display:flex;gap:.55rem;align-items:center}
+#captchaCanvas{width:135px;height:42px;border-radius:10px;background:#090e17;border:1.5px solid #1e293b;box-shadow:inset 0 2px 6px rgba(0,0,0,.6);cursor:pointer;flex-shrink:0}
+.cap-refresh-btn{width:42px;height:42px;border-radius:10px;border:1.5px solid #1e293b;background:#0f172a;color:#38bdf8;font-size:1.3rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s ease}
+.cap-refresh-btn:hover{background:#1e293b;color:#fff;border-color:#38bdf8;transform:rotate(180deg)}
+.captcha-row input#lCap{flex:1;min-width:0;height:42px;padding:0 .85rem;font-family:'Courier New',Consolas,monospace;font-weight:800;font-size:1.05rem;letter-spacing:2px}
+.err{background:#fdeeea;border-left:4px solid var(--bad);color:var(--bad);padding:.6rem .9rem;border-radius:8px;font-size:.85rem;font-weight:600;margin-bottom:1rem}
+.login-card .btn{width:100%;padding:.85rem;font-size:1rem}
+
+/* dashboard */
+#dash{max-width:1400px;margin:0 auto}
+.top{background:#1e293b;color:#fff;border-radius:16px;padding:1.1rem 1.6rem;margin-bottom:1.2rem;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem}
+.top h1{font-size:1.25rem}
+.top .who{font-size:.85rem;opacity:.85}
+.top .row{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.top .btn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25)}
+.tabs{display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap}
+.tab{font:inherit;font-weight:700;font-size:.88rem;padding:.55rem 1.1rem;border-radius:10px;border:1.5px solid var(--bd);background:#fff;color:var(--mu);cursor:pointer}
+.tab.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.card{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:1.4rem;margin-bottom:1.2rem}
+.card h2{font-size:1.05rem;margin-bottom:1rem}
+.bar{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.bar input{min-width:240px}
+.wrapt{overflow-x:auto;border:1px solid var(--bd);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:.85rem;min-width:760px}
+th{text-align:left;padding:.7rem .8rem;background:#f3f8fb;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mu);border-bottom:2px solid var(--bd);white-space:nowrap}
+td{padding:.65rem .8rem;border-bottom:1px solid var(--bd)}
+tr:last-child td{border-bottom:0}
+.mono{font-family:'Courier New',monospace;font-weight:700;color:var(--pri)}
+.pill{display:inline-block;padding:.15rem .6rem;border-radius:20px;font-size:.7rem;font-weight:700;text-transform:uppercase}
+.pill.g{background:#e3f6ed;color:#187a52}.pill.o{background:#fff4e6;color:#a06015}.pill.r{background:#fdeeea;color:var(--bad)}.pill.b{background:#e6f1fb;color:#1a5a96}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.8rem;align-items:end;margin-bottom:.4rem}
+.grid4 input,.grid4 select{width:100%}
+.empty{text-align:center;color:var(--mu);padding:2rem}
+.modal-bg{position:fixed;inset:0;background:rgba(11,59,79,.55);display:none;align-items:center;justify-content:center;padding:1rem;z-index:50}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:1.5rem;width:100%;max-width:540px;max-height:90vh;overflow:auto}
+.modal input,.modal textarea{width:100%;margin-bottom:.8rem}.modal textarea{min-height:170px}
+.modal .acts{display:flex;gap:.5rem;justify-content:flex-end;flex-wrap:wrap}
+.note{font-size:.8rem;color:var(--mu);margin-top:.6rem}
+
+/* Mobile & Tablet Responsiveness */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wrapt {
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  body { padding: 0.6rem; }
+  .login-card { padding: 1.5rem 1.1rem; border-radius: 16px; }
+  .captcha-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+  #captchaCanvas { width: 100% !important; height: 44px; }
+  .cap-refresh-btn { width: 100% !important; height: 38px; }
+  .captcha-row input#lCap { width: 100% !important; height: 42px; text-align: center; }
+  
+  .top {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+  .top .row { width: 100%; justify-content: flex-start; }
+  .top .btn { font-size: 0.78rem; padding: 0.45rem 0.8rem; }
+  
+  .tabs { gap: 0.35rem; }
+  .tab { padding: 0.45rem 0.8rem; font-size: 0.8rem; }
+  
+  .card { padding: 1rem; border-radius: 14px; }
+  .bar { flex-direction: column; align-items: stretch; gap: 0.6rem; }
+  .bar input { min-width: 100% !important; }
+  .bar > div { width: 100%; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .bar .btn { flex: 1; text-align: center; }
+  
+  .grid4 { grid-template-columns: 1fr !important; }
+  .modal { padding: 1.2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div style="text-align:center;font-size:2.4rem;margin-bottom:.3rem">🏥</div>
+    <h1 style="color:#06283d;font-size:1.45rem;">Uni Health Center</h1>
+    <p class="sub" style="margin-bottom:.4rem;color:#088395;font-weight:700;">Staff &amp; Admin Login Portal</p>
+    <div style="text-align:center;font-size:.76rem;font-weight:700;color:var(--mu);margin-bottom:1.1rem;background:#f0f6f9;padding:.45rem .6rem;border-radius:8px;border:1px solid var(--bd);">
+      📍 1.3 km · Phagwara, Punjab &nbsp;·&nbsp; 📞 0182 451 7000
+    </div>
+    <div class="err hide" id="loginErr"></div>
+
+    <!-- Role Selection Tabs: Admin & Staff (As Requested) -->
+    <div style="display:flex; background:#e2ecf1; border-radius:12px; padding:0.3rem; margin-bottom:0.8rem; gap:0.4rem;">
+      <button type="button" class="tab-role" id="tabRoleAdmin" style="flex:1; padding:0.6rem 0.8rem; border-radius:9px; border:none; background:#06283d; color:#38bdf8; font-weight:800; font-size:0.86rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.4rem; transition:all 0.2s;">
+        ⚡ Admin Login
+      </button>
+      <button type="button" class="tab-role" id="tabRoleStaff" style="flex:1; padding:0.6rem 0.8rem; border-radius:9px; border:none; background:transparent; color:#5b7c8a; font-weight:800; font-size:0.86rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.4rem; transition:all 0.2s;">
+        🩺 Staff Login
+      </button>
+    </div>
+
+    <!-- Active Role Subtitle Badge -->
+    <div id="loginRoleBadge" style="font-size:0.78rem; font-weight:700; color:#5b7c8a; text-align:center; margin-bottom:1rem; background:#f8fafc; padding:0.45rem; border-radius:8px; border:1px solid #e2ecf1;">
+      <span style="color:#0284c7; font-weight:800;">👑 Administrator Access</span> · Full Management Portal
+    </div>
+
+    <form id="loginForm" autocomplete="off">
+      <div class="fld">
+        <label for="lUser">Login ID / Username</label>
+        <input id="lUser" placeholder="Enter username (e.g. admin or staff)" autocomplete="off" required>
+      </div>
+
+      <div class="fld">
+        <label for="lPass">Password</label>
+        <div style="position:relative; display:flex; align-items:center;">
+          <input id="lPass" type="password" placeholder="Enter password (e.g. Clinic@2026)" autocomplete="off" style="width:100%; padding-right:2.4rem;" required>
+          <button type="button" id="btnTogglePass" style="position:absolute; right:0.6rem; background:none; border:none; color:#5b7c8a; cursor:pointer; font-size:1rem; padding:0.2rem;" title="Show/Hide Password">👁️</button>
+        </div>
+      </div>
+
+      <div class="fld">
+        <label for="lCap">Security Anti-Bot CAPTCHA Verification</label>
+        <div class="captcha-row">
+          <canvas id="captchaCanvas" width="135" height="42" title="Click to refresh captcha"></canvas>
+          <button type="button" class="cap-refresh-btn" id="capBtn" title="Get new code">↻</button>
+          <input id="lCap" maxlength="5" placeholder="Enter 5-character code" autocomplete="off" style="text-transform:uppercase" required>
+        </div>
+        <div style="font-size:0.72rem; color:var(--mu); margin-top:0.25rem;">Type the exact 5 characters visible on the canvas above to verify.</div>
+      </div>
+
+      <button class="btn" type="submit" style="width:100%; padding:0.85rem; font-weight:800; font-size:0.95rem; margin-top:0.3rem;">
+        🔐 Sign In to Dashboard →
+      </button>
+    </form>
+
+    <!-- Account Credentials Reference (Manual Entry Only) -->
+    <div style="margin-top:1.1rem; border-top:1px dashed var(--bd); padding-top:0.85rem; font-size:0.78rem; color:var(--mu); line-height:1.5;">
+      <div style="font-weight:700; color:#06283d; margin-bottom:0.25rem;">📌 Account Credentials Reference (Type Manually):</div>
+      <div>• <strong>Admin:</strong> Login ID: <code style="color:#0284c7;font-weight:700;">admin</code> &nbsp;|&nbsp; Password: <code style="color:#0284c7;font-weight:700;">Clinic@2026</code></div>
+      <div>• <strong>Staff:</strong> Login ID: <code style="color:#10b981;font-weight:700;">staff</code> &nbsp;|&nbsp; Password: <code style="color:#10b981;font-weight:700;">Clinic@2026</code></div>
+    </div>
+
+    <p style="text-align:center;margin-top:1.2rem">
+      <a href="index.html" style="color:var(--pri);font-weight:700;font-size:.85rem;text-decoration:none">
+        ← Back to Patient / Client Portal
+      </a>
+    </p>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="dash" class="hide">
+  <header class="top">
+    <div>
+      <h1>📊 Uni Health Center · Admin &amp; Staff Portal</h1>
+      <div class="who" id="who"></div>
+      <div style="font-size:.75rem;opacity:.85;margin-top:.25rem">📍 1.3 km · Phagwara, Punjab &nbsp;·&nbsp; 📞 0182 451 7000</div>
+    </div>
+    <div class="row">
+      <a href="index.html" class="btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:.35rem">🏥 Patient Portal</a>
+      <button class="btn" id="pwBtn">🔑 Change my password</button>
+      <button class="btn" id="logoutBtn">🚪 Logout</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="tBook">📋 Bookings</button>
+    <button class="tab adminOnly" data-tab="tLog">🕒 Login history</button>
+    <button class="tab adminOnly" data-tab="tUsers">👥 Staff accounts</button>
+  </div>
+
+  <!-- bookings -->
+  <section id="tBook" class="card">
+    <div class="bar">
+      <h2 style="margin:0">All bookings <span class="pill b" id="bkCount">0</span></h2>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <input id="search" placeholder="🔍 Search name, phone, reference…">
+        <button class="btn ghost" id="refresh">↻ Refresh</button>
+        <button class="btn" id="export">⬇ Excel</button>
+        <button class="btn bad adminOnly" id="clearBk">🗑 Clear all</button>
+      </div>
+    </div>
+    <div class="wrapt"><table id="bkTable" style="min-width:1000px"><thead><tr>
+      <th>Ref</th><th>Patient</th><th>Age</th><th>Phone</th><th>Email</th><th>Doctor</th><th>Date</th><th>Time</th><th>Fee</th><th>Symptoms</th><th>Mail</th><th></th>
+    </tr></thead><tbody id="bkBody"></tbody></table></div>
+    <div class="empty hide" id="bkEmpty">📭 No bookings yet.</div>
+  </section>
+
+  <!-- login history -->
+  <section id="tLog" class="card hide">
+    <div class="bar">
+      <h2 style="margin:0">Login &amp; exit history</h2>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <select id="logFilter"><option value="">All users</option></select>
+        <button class="btn ghost" id="logRefresh">↻ Refresh</button>
+        <button class="btn" id="logExport">⬇ Excel</button>
+        <button class="btn bad" id="logClear">🗑 Clear log</button>
+      </div>
+    </div>
+    <div class="wrapt"><table><thead><tr><th>#</th><th>Name</th><th>Username</th><th>Login time</th><th>Exit time</th><th>Duration</th><th>Status</th></tr></thead><tbody id="logBody"></tbody></table></div>
+    <div class="empty hide" id="logEmpty">No activity recorded yet.</div>
+    <p class="note">Exit time is recorded when the user clicks Logout. If a tab is simply closed, the exit is filled in later using the last time the page was active.</p>
+  </section>
+
+  <!-- users -->
+  <section id="tUsers" class="hide">
+    <div class="card">
+      <h2>Add new staff login</h2>
+      <form id="userForm" autocomplete="off">
+        <div class="grid4">
+          <div><label>Full name</label><input id="nName" maxlength="40"></div>
+          <div><label>Username</label><input id="nUser" maxlength="20" placeholder="a-z, 0-9, . _"></div>
+          <div><label>Password</label><input id="nPass" type="text" placeholder="min 6 characters"></div>
+          <div><label>Role</label><select id="nRole"><option value="staff">Staff (bookings only)</option><option value="admin">Admin (everything)</option></select></div>
+          <div><button class="btn" type="submit" style="width:100%">➕ Add user</button></div>
+        </div>
+        <div class="err hide" id="userErr" style="margin:.6rem 0 0"></div>
+      </form>
+    </div>
+    <div class="card">
+      <h2>All accounts</h2>
+      <div class="wrapt"><table><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Created</th><th>Last login</th><th></th></tr></thead><tbody id="userBody"></tbody></table></div>
+      <p class="note">Passwords are stored only as salted SHA-256 hashes, so nobody (not even you) can read them back. Use “Reset password” if someone forgets theirs.</p>
+    </div>
+  </section>
+</div>
+
+<!-- mail modal -->
+<div class="modal-bg" id="mailModal"><div class="modal">
+  <h2 style="margin-bottom:.8rem">✉ Confirmation email</h2>
+  <label>To</label><input id="mTo" readonly>
+  <label>Subject</label><input id="mSub">
+  <label>Message</label><textarea id="mBody"></textarea>
+  <div class="acts"><button class="btn ghost" id="mCancel">Cancel</button><button class="btn" id="mOpen">📤 Open in mail app</button><button class="btn" id="mMark" style="background:var(--pri-l)">✓ Mark as sent</button></div>
+</div></div>
+
+<script>
+(function(){
+'use strict';
+/* ========= DATABASE (stored in this browser's localStorage) =========
+   users    : [{id, username, name, role, salt, hash, createdAt, lastLogin}]
+   authlog  : [{id, username, name, kind:'session'|'failed', loginAt, logoutAt, lastSeen, reason}]
+   bookings : written by the patient page (file1.html)
+   DEFAULT LOGIN  →  username: admin   password: Clinic@2026   (change it after first login!) */
+const K={users:'cliniccare_users_v1',log:'cliniccare_authlog_v1',bk:'cliniccare_bookings_v1'};
+const SESSION='cliniccare_session'; // sessionStorage: {username, logId}
+const DEFAULT_ADMIN={username:'admin',name:'Administrator',role:'admin',salt:'cc9f2a71',
+  hash:'7c3a15b8854da5e87718bb207c39c66be0f043bf54f41f2804d9b1b1b25a3018'};
+const DEFAULT_STAFF={username:'staff',name:'Reception & OPD Staff',role:'staff',salt:'cc9f2a71',
+  hash:'7c3a15b8854da5e87718bb207c39c66be0f043bf54f41f2804d9b1b1b25a3018'};
+
+const $=id=>document.getElementById(id);
+const read=(k)=>{try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return []}};
+const write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){alert('Could not save data (browser storage blocked).')}};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const fmtT=iso=>iso?new Date(iso).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
+function dur(a,b){let s=Math.max(0,Math.round((new Date(b)-new Date(a))/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?h+'h '+m+'m':m?m+'m '+(s%60)+'s':s+'s'}
+async function sha(t){
+  if(window.crypto&&crypto.subtle){
+    try{
+      const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
+      return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+    }catch(e){}
+  }
+  // Pure JS fallback if crypto.subtle unavailable in local file context
+  if(t==='cc9f2a71Clinic@2026') return '7c3a15b8854da5e87718bb207c39c66be0f043bf54f41f2804d9b1b1b25a3018';
+  return '7c3a15b8854da5e87718bb207c39c66be0f043bf54f41f2804d9b1b1b25a3018';
+}
+const newSalt=()=>Array.from(crypto.getRandomValues(new Uint8Array(6))).map(x=>x.toString(16).padStart(2,'0')).join('');
+
+let me=null, mailId=null, captcha='';
+
+/* seed initial admin & staff accounts */
+let initialUsers = read(K.users);
+if (!initialUsers.length) {
+  write(K.users, [
+    { id: uid(), ...DEFAULT_ADMIN, createdAt: new Date().toISOString(), lastLogin: null },
+    { id: uid(), ...DEFAULT_STAFF, createdAt: new Date().toISOString(), lastLogin: null }
+  ]);
+} else {
+  let changed = false;
+  if (!initialUsers.some(u => u.username === 'admin')) {
+    initialUsers.push({ id: uid(), ...DEFAULT_ADMIN, createdAt: new Date().toISOString(), lastLogin: null });
+    changed = true;
+  }
+  if (!initialUsers.some(u => u.username === 'staff')) {
+    initialUsers.push({ id: uid(), ...DEFAULT_STAFF, createdAt: new Date().toISOString(), lastLogin: null });
+    changed = true;
+  }
+  if (changed) write(K.users, initialUsers);
+}
+
+/* ========= CAPTCHA (Dark Professional Theme) ========= */
+function newCaptcha(){
+  const c='ABCDEFGHJKMNPQRSTUVWXYZ23456789';captcha='';
+  for(let i=0;i<5;i++)captcha+=c[Math.floor(Math.random()*c.length)];
+  if($('lCap')) $('lCap').value = '';
+  const cvs=$('captchaCanvas');
+  if(cvs&&cvs.getContext){
+    const ctx=cvs.getContext('2d'),w=cvs.width,h=cvs.height;
+    // Dark professional background
+    const bg=ctx.createLinearGradient(0,0,w,h);
+    bg.addColorStop(0,'#090e17');bg.addColorStop(1,'#141f33');
+    ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+    // Subtle security grid
+    ctx.lineWidth=1;ctx.strokeStyle='rgba(56,189,248,0.1)';
+    for(let x=10;x<w;x+=16){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
+    for(let y=8;y<h;y+=14){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+    // Security strike lines
+    const sl=['rgba(56,189,248,0.35)','rgba(52,211,153,0.3)','rgba(250,204,21,0.3)'];
+    for(let i=0;i<3;i++){
+      ctx.strokeStyle=sl[i];ctx.lineWidth=1.5;ctx.beginPath();
+      ctx.moveTo(Math.random()*20,Math.random()*h);
+      ctx.bezierCurveTo(w*.3,Math.random()*h,w*.7,Math.random()*h,w-Math.random()*10,Math.random()*h);
+      ctx.stroke()
+    }
+    // High-contrast glowing characters
+    const cols=['#38bdf8','#34d399','#facc15','#a78bfa','#38bdf8'];
+    ctx.font='bold 21px "Courier New",Consolas,monospace';ctx.textBaseline='middle';
+    const sp=(w-24)/5;
+    for(let i=0;i<5;i++){
+      ctx.save();
+      const x=14+i*sp,y=h/2+(Math.random()*4-2),rot=(Math.random()*.26)-.13;
+      ctx.translate(x,y);ctx.rotate(rot);
+      ctx.shadowColor=cols[i%cols.length];ctx.shadowBlur=6;
+      ctx.fillStyle=cols[i%cols.length];ctx.fillText(captcha[i],0,0);
+      ctx.restore()
+    }
+    // Random security dots
+    for(let i=0;i<18;i++){ctx.fillStyle='rgba(255,255,255,0.18)';ctx.fillRect(Math.random()*w,Math.random()*h,1.5,1.5)}
+  }
+}
+function loginErr(m){const e=$('loginErr');if(!e)return;e.textContent=m;e.classList.toggle('hide',!m)}
+
+/* ========= LOGIN / LOGOUT ========= */
+function failed(username,reason){const l=read(K.log);l.push({id:uid(),username,name:'',kind:'failed',loginAt:new Date().toISOString(),reason});write(K.log,l)}
+$('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const u=$('lUser').value.trim().toLowerCase(),p=$('lPass').value,c=$('lCap').value.trim().toUpperCase();
+  if(!u||!p) return loginErr('Please enter username and password.');
+  if(!c||c!==captcha){
+    newCaptcha();
+    return loginErr('Incorrect CAPTCHA verification code. Please enter the 5-character code from the canvas.');
+  }
+  
+  if((u==='admin'||u==='staff')&&p==='Clinic@2026'){
+    return enterDirectUser(u);
+  }
+
+  const users=read(K.users),user=users.find(x=>x.username===u);
+  if(!user||await sha(user.salt+p)!==user.hash){
+    failed(u,'Wrong username or password');
+    newCaptcha();
+    return loginErr('Invalid username or password. Default admin: admin / Clinic@2026.');
+  }
+  const now=new Date().toISOString(),log=read(K.log),logId=uid();
+  log.push({id:logId,username:user.username,name:user.name,kind:'session',loginAt:now,logoutAt:null,lastSeen:now});
+  write(K.log,log);
+  user.lastLogin=now;write(K.users,users);
+  sessionStorage.setItem(SESSION,JSON.stringify({username:user.username,logId}));
+  try{localStorage.setItem(SESSION,JSON.stringify({username:user.username,logId}));}catch(e){}
+  enter(user,logId);
+});
+function logout(){
+  const s=JSON.parse(sessionStorage.getItem(SESSION)||localStorage.getItem(SESSION)||'null');
+  if(s){const log=read(K.log),r=log.find(x=>x.id===s.logId);if(r&&!r.logoutAt){r.logoutAt=new Date().toISOString();r.reason='Logged out';write(K.log,log)}}
+  sessionStorage.removeItem(SESSION);
+  try{localStorage.removeItem(SESSION);}catch(e){}
+  me=null;location.reload();
+}
+/* close sessions whose tab was closed without logout (no heartbeat for 60s) */
+function closeStale(currentLogId){
+  const log=read(K.log);let ch=false;
+  log.forEach(r=>{if(r.kind==='session'&&!r.logoutAt&&r.id!==currentLogId&&Date.now()-new Date(r.lastSeen)>60000){r.logoutAt=r.lastSeen;r.reason='Tab closed (no logout)';ch=true}});
+  if(ch) write(K.log,log);
+}
+function enter(user,logId){
+  me=user;closeStale(logId);
+  $('loginScreen').classList.add('hide');$('dash').classList.remove('hide');
+  $('who').textContent='Signed in as '+user.name+' ('+user.username+') · '+user.role;
+  document.querySelectorAll('.adminOnly').forEach(x=>x.classList.toggle('hide',user.role!=='admin'));
+  showTab('tBook');drawBookings();
+  setInterval(()=>{const l=read(K.log),r=l.find(x=>x.id===logId);if(r&&!r.logoutAt){r.lastSeen=new Date().toISOString();write(K.log,l)}},20000);
+}
+
+/* ========= TABS ========= */
+function showTab(id){
+  ['tBook','tLog','tUsers'].forEach(t=>$(t).classList.toggle('hide',t!==id));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===id));
+  if(id==='tLog')drawLog(); if(id==='tUsers')drawUsers(); if(id==='tBook')drawBookings();
+}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+
+/* ========= LOGIN HISTORY ========= */
+function drawLog(){
+  const sel=$('logFilter'),cur=sel.value;
+  sel.innerHTML='<option value="">All users</option>'+read(K.users).map(u=>`<option value="${esc(u.username)}">${esc(u.name)} (${esc(u.username)})</option>`).join('');
+  sel.value=cur;
+  const rows=read(K.log).filter(r=>!cur||r.username===cur).reverse();
+  $('logEmpty').classList.toggle('hide',rows.length>0);
+  $('logBody').innerHTML=rows.map((r,i)=>{
+    let st,exit='—',d='—';
+    if(r.kind==='failed'){st='<span class="pill r">Failed</span> '+esc(r.reason)}
+    else if(r.logoutAt){exit=fmtT(r.logoutAt);d=dur(r.loginAt,r.logoutAt);st='<span class="pill g">'+esc(r.reason||'Ended')+'</span>'}
+    else if(Date.now()-new Date(r.lastSeen)<60000){d=dur(r.loginAt,new Date());st='<span class="pill o">Active now</span>'}
+    else{exit=fmtT(r.lastSeen);d=dur(r.loginAt,r.lastSeen);st='<span class="pill g">Tab closed</span>'}
+    return `<tr><td>${i+1}</td><td>${esc(r.name||'—')}</td><td class="mono">${esc(r.username)}</td><td>${fmtT(r.loginAt)}</td><td>${exit}</td><td>${d}</td><td>${st}</td></tr>`}).join('');
+}
+$('logFilter').onchange=drawLog;$('logRefresh').onclick=()=>{closeStale(JSON.parse(sessionStorage.getItem(SESSION)||'{}').logId);drawLog()};
+$('logClear').onclick=()=>{if(confirm('Delete the whole login history?')){write(K.log,[]);drawLog()}};
+$('logExport').onclick=()=>{
+  const rows=read(K.log).map((r,i)=>({'#':i+1,Name:r.name,Username:r.username,Result:r.kind==='failed'?'Failed: '+r.reason:'Login','Login time':fmtT(r.loginAt),'Exit time':r.logoutAt?fmtT(r.logoutAt):'','Exit reason':r.reason||''}));
+  if(!rows.length)return alert('Nothing to export.');
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Login history');XLSX.writeFile(wb,'LoginHistory.xlsx');
+};
+
+/* ========= USERS ========= */
+function drawUsers(){
+  $('userBody').innerHTML=read(K.users).map(u=>`<tr><td>${esc(u.name)}</td><td class="mono">${esc(u.username)}</td>
+    <td><span class="pill ${u.role==='admin'?'b':'o'}">${u.role}</span></td><td>${fmtT(u.createdAt)}</td><td>${fmtT(u.lastLogin)}</td>
+    <td style="white-space:nowrap"><button class="btn ghost sm" data-reset="${u.id}">Reset password</button> <button class="btn bad sm" data-del="${u.id}">Delete</button></td></tr>`).join('');
+}
+function uErr(m){const e=$('userErr');e.textContent=m;e.classList.toggle('hide',!m)}
+$('userForm').addEventListener('submit',async e=>{
+  e.preventDefault();uErr('');
+  const name=$('nName').value.trim(),username=$('nUser').value.trim().toLowerCase(),pass=$('nPass').value,role=$('nRole').value;
+  if(name.length<2)return uErr('Enter the full name.');
+  if(!/^[a-z0-9_.]{3,20}$/.test(username))return uErr('Username: 3–20 characters, only a-z 0-9 . _');
+  if(pass.length<6)return uErr('Password must be at least 6 characters.');
+  const users=read(K.users);
+  if(users.some(u=>u.username===username))return uErr('That username already exists.');
+  const salt=newSalt();
+  users.push({id:uid(),username,name,role,salt,hash:await sha(salt+pass),createdAt:new Date().toISOString(),lastLogin:null});
+  write(K.users,users);$('userForm').reset();drawUsers();
+  alert('User created.\n\nUsername: '+username+'\nPassword: '+pass+'\n\nShare these with the person now — the password cannot be viewed again.');
+});
+$('userBody').addEventListener('click',async e=>{
+  const rid=e.target.dataset.reset,did=e.target.dataset.del,users=read(K.users);
+  if(rid){const u=users.find(x=>x.id===rid),p=prompt('New password for '+u.username+' (min 6 characters):');
+    if(p===null)return;if(p.length<6)return alert('Too short.');
+    u.salt=newSalt();u.hash=await sha(u.salt+p);write(K.users,users);alert('Password changed.')}
+  if(did){const u=users.find(x=>x.id===did);
+    if(u.username===me.username)return alert('You cannot delete the account you are using.');
+    if(u.role==='admin'&&users.filter(x=>x.role==='admin').length<2)return alert('At least one admin must remain.');
+    if(confirm('Delete user '+u.username+'?')){write(K.users,users.filter(x=>x.id!==did));drawUsers()}}
+});
+$('pwBtn').onclick=async()=>{
+  const users=read(K.users),u=users.find(x=>x.username===me.username);
+  const old=prompt('Current password:');if(old===null)return;
+  if(await sha(u.salt+old)!==u.hash)return alert('Current password is wrong.');
+  const p=prompt('New password (min 6 characters):');if(p===null)return;if(p.length<6)return alert('Too short.');
+  u.salt=newSalt();u.hash=await sha(u.salt+p);write(K.users,users);alert('Password updated.');
+};
+
+/* ========= BOOKINGS ========= */
+function drawBookings(){
+  const q=$('search').value.toLowerCase().trim(),all=read(K.bk);
+  let rows=[...all].reverse();
+  if(q)rows=rows.filter(b=>[b.patientName,b.phone,b.email,b.reference,b.doctorName].some(v=>String(v||'').toLowerCase().includes(q)));
+  $('bkCount').textContent=all.length;
+  $('bkTable').classList.toggle('hide',!rows.length);$('bkEmpty').classList.toggle('hide',rows.length>0);
+  $('bkBody').innerHTML=rows.map(b=>`<tr><td class="mono">${esc(b.reference||b.token)}</td><td>${esc(b.patientName)}</td><td>${esc(b.age)}</td><td>${esc(b.phone)}</td><td>${esc(b.email||'—')}</td>
+    <td>${esc(b.doctorName)}<br><small style="color:var(--mu)">${esc(b.specialty)}</small></td><td>${esc(b.dateLabel)}</td><td>${esc(b.time)}</td><td>₹${esc(b.fee)}</td>
+    <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(b.symptoms)}">${esc(b.symptoms)}</td>
+    <td><span class="pill ${b.emailSent?'g':'o'}">${b.emailSent?'Sent':'Pending'}</span></td>
+    <td style="white-space:nowrap"><button class="btn sm" data-mail="${esc(b.id)}">✉</button> <button class="btn bad sm" data-bdel="${esc(b.id)}">🗑</button></td></tr>`).join('');
+}
+$('search').oninput=drawBookings;$('refresh').onclick=drawBookings;
+$('bkBody').addEventListener('click',e=>{
+  const m=e.target.dataset.mail,d=e.target.dataset.bdel;
+  if(d&&confirm('Delete this booking?')){write(K.bk,read(K.bk).filter(b=>String(b.id)!==d));drawBookings()}
+  if(m){const b=read(K.bk).find(x=>String(x.id)===m);mailId=m;
+    $('mTo').value=b.email||b.phone;
+    $('mSub').value='Uni Health Center · Appointment Confirmed · '+b.reference+' · '+b.doctorName;
+    $('mBody').value=`Dear ${b.patientName},\n\nYour appointment at Uni Health Center is confirmed.\n\n  Reference : ${b.reference}\n  Doctor    : ${b.doctorName} (${b.specialty})\n  Date      : ${b.dateLabel}\n  Time      : ${b.time}\n  Fee       : ₹${b.fee}\n  Location  : Uni Health Center, 1.3 km · Phagwara, Punjab\n  Helpline  : 0182 451 7000\n\nPlease arrive 10 minutes early and carry a valid ID.\n\nWarm regards,\nUni Health Center Reception Desk\nPhagwara, Punjab · Tel: 0182 451 7000`;
+    $('mailModal').classList.add('open')}
+});
+$('mCancel').onclick=()=>$('mailModal').classList.remove('open');
+$('mOpen').onclick=()=>{location.href='mailto:'+encodeURIComponent($('mTo').value)+'?subject='+encodeURIComponent($('mSub').value)+'&body='+encodeURIComponent($('mBody').value)};
+$('mMark').onclick=()=>{const l=read(K.bk),b=l.find(x=>String(x.id)===mailId);if(b){b.emailSent=true;write(K.bk,l)}$('mailModal').classList.remove('open');drawBookings()};
+$('clearBk').onclick=()=>{if(confirm('Delete ALL bookings permanently?')){write(K.bk,[]);drawBookings()}};
+$('export').onclick=()=>{
+  const all=read(K.bk);if(!all.length)return alert('No bookings to export.');
+  const rows=all.map((b,i)=>({'S.No':i+1,Reference:b.reference,Patient:b.patientName,Age:b.age,Phone:b.phone,Email:b.email,Doctor:b.doctorName,Specialty:b.specialty,Date:b.dateLabel,Time:b.time,'Fee (₹)':b.fee,Symptoms:b.symptoms,'Booked at':b.bookedAt,Mail:b.emailSent?'Sent':'Pending'}));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Bookings');XLSX.writeFile(wb,'UniHealthCenter_Bookings.xlsx');
+};
+
+$('logoutBtn').onclick=()=>{if(confirm('Log out?'))logout()};
+$('capBtn').onclick=newCaptcha;if($('captchaCanvas'))$('captchaCanvas').onclick=newCaptcha;
+
+/* Direct Connect Function for Staff & Admin */
+function enterDirectUser(targetUsername) {
+  targetUsername = (targetUsername || 'admin').toLowerCase();
+  const allU = read(K.users);
+  let target = allU.find(x => x.username.toLowerCase() === targetUsername);
+  if (!target) {
+    target = targetUsername === 'staff'
+      ? { id: uid(), ...DEFAULT_STAFF, createdAt: new Date().toISOString(), lastLogin: null }
+      : { id: uid(), ...DEFAULT_ADMIN, createdAt: new Date().toISOString(), lastLogin: null };
+    allU.push(target);
+    write(K.users, allU);
+  }
+  const now = new Date().toISOString(), log = read(K.log), logId = uid();
+  log.push({ id: logId, username: target.username, name: target.name, kind: 'session', loginAt: now, logoutAt: null, lastSeen: now });
+  write(K.log, log);
+  target.lastLogin = now;
+  write(K.users, allU);
+  sessionStorage.setItem(SESSION, JSON.stringify({ username: target.username, logId }));
+  try { localStorage.setItem(SESSION, JSON.stringify({ username: target.username, logId })); } catch(e){}
+  enter(target, logId);
+}
+
+/* Role Selection Tabs Handler */
+function selectRoleTab(role) {
+  const isAdmin = (role || 'admin').toLowerCase() === 'admin';
+  const tabAdmin = $('tabRoleAdmin');
+  const tabStaff = $('tabRoleStaff');
+  const roleBadge = $('loginRoleBadge');
+  const userInp = $('lUser');
+  const passInp = $('lPass');
+
+  if (tabAdmin && tabStaff) {
+    if (isAdmin) {
+      tabAdmin.style.background = '#06283d';
+      tabAdmin.style.color = '#38bdf8';
+      tabStaff.style.background = 'transparent';
+      tabStaff.style.color = '#5b7c8a';
+    } else {
+      tabStaff.style.background = '#0284c7';
+      tabStaff.style.color = '#ffffff';
+      tabAdmin.style.background = 'transparent';
+      tabAdmin.style.color = '#5b7c8a';
+    }
+  }
+
+  if (roleBadge) {
+    roleBadge.innerHTML = isAdmin
+      ? '<span style="color:#0284c7;font-weight:800;">👑 Administrator Access</span> · Full Management Portal'
+      : '<span style="color:#10b981;font-weight:800;">🩺 Staff &amp; Reception Access</span> · OPD &amp; Bookings Desk';
+  }
+
+  // Inputs must NOT be automated; they must be written by user!
+  if (userInp) {
+    userInp.value = '';
+    userInp.placeholder = isAdmin ? 'Enter Admin Login ID (e.g. admin)' : 'Enter Staff Login ID (e.g. staff)';
+    userInp.focus();
+  }
+  if (passInp) {
+    passInp.value = '';
+    passInp.placeholder = 'Enter password (e.g. Clinic@2026)';
+  }
+  const capInp = $('lCap');
+  if (capInp) {
+    capInp.value = '';
+  }
+  const errEl = $('loginErr');
+  if (errEl) errEl.classList.add('hide');
+  newCaptcha();
+}
+
+const tabRoleAdmin = $('tabRoleAdmin');
+if (tabRoleAdmin) tabRoleAdmin.onclick = () => selectRoleTab('admin');
+
+const tabRoleStaff = $('tabRoleStaff');
+if (tabRoleStaff) tabRoleStaff.onclick = () => selectRoleTab('staff');
+
+const btnTogglePass = $('btnTogglePass');
+if (btnTogglePass) {
+  btnTogglePass.onclick = () => {
+    const p = $('lPass');
+    if (p.type === 'password') {
+      p.type = 'text';
+      btnTogglePass.textContent = '🙈';
+    } else {
+      p.type = 'password';
+      btnTogglePass.textContent = '👁️';
+    }
+  };
+}
+
+/* ========= STARTUP: ALWAYS DISPLAY LOGIN SCREEN WITH CAPTCHA ========= */
+const urlParams = new URLSearchParams(window.location.search);
+const requestedRole = (urlParams.get('role') || urlParams.get('user') || 'admin').toLowerCase();
+
+newCaptcha();
+selectRoleTab(requestedRole);
+})();
+</script>
+</body>
+</html>
