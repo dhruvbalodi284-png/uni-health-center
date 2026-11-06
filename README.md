@@ -373,24 +373,21 @@ The system tracks every session with forensic detail:
 <tr>
 <td width="60%">
 
-**Desktop (> 1180px)**
+**Desktop & Laptop (All Screens)**
 
 - **Floating Curvy Island Navbar** with `border-radius: clamp(20px, 2.5vw, 28px)`
 - Glassmorphic `backdrop-filter` blur effect
-- **8 Glowing-Box Nav Links** with cyan active glow:
-  ```
-  box-shadow: 0 0 12px rgba(2, 132, 199, 0.45)
-  ```
+- **☰ Hamburger Menu** always visible — opens slide-out drawer with all 8 glowing-box nav links
 - Dynamic **ScrollSpy** routing for active link tracking
-- Compact adaptation at `< 1400px`
+- Clean, uncluttered header on all screen sizes
 
 </td>
 <td width="40%">
 
 **Mobile (≤ 1180px)**
 
-- **☰ Hamburger** three-line toggle
-- **Slide-out drawer** with all 8 links
+- Same **☰ Hamburger** three-line toggle
+- **Slide-out drawer** adapts for touch
 - Touch-friendly tap targets
 - Direct **📅 Book Appointment** action button
 - Persistent **floating tracking button**
