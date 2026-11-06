@@ -276,7 +276,7 @@
      NAVIGATION MENU (GLOWING BOX ACTIVE STATE)
   ======================================================== */
   .nav-menu {
-    display: flex;
+    display: none;
     align-items: center;
     gap: 12px;
     list-style: none;
@@ -319,11 +319,8 @@
                 0 0 4px rgba(2, 132, 199, 0.25);
   }
 
-  /* Responsive adjustment for compact screens */
+  /* Responsive adjustment for compact screens - nav-menu always hidden, using drawer */
   @media screen and (max-width: 1400px) and (min-width: 1181px) {
-    .nav-menu {
-      gap: 6px;
-    }
     .nav-link {
       padding: 6px 9px;
       font-size: 13px;
@@ -331,10 +328,6 @@
   }
 
   @media screen and (max-width: 1200px) {
-    .nav-menu {
-      gap: 8px;
-    }
-
     .nav-link {
       padding: 6px 10px;
       font-size: 13.5px;
@@ -3039,9 +3032,9 @@
   }
 
 
-  /* Mobile Hamburger Toggle & Drawer */
+  /* Hamburger Toggle & Drawer (visible on all screen sizes) */
   .mobile-menu-toggle {
-    display: none;
+    display: inline-flex;
     width: 44px;
     height: 44px;
     border-radius: 12px;
@@ -3175,8 +3168,7 @@
   
   /* LAPTOPS & TABLETS (<= 1180px) */
   @media (max-width: 1180px) {
-    .nav-links, .nav-menu { display: none !important; }
-    .mobile-menu-toggle { display: inline-flex !important; }
+    .nav-links { display: none !important; }
   }
 
   /* TABLETS & SMALL LAPTOPS (769px - 1024px) */
