@@ -5400,7 +5400,7 @@
       .map(b => b.time);
   }
 
-  function isValidEmail(s) { return /^[^s@]+@[^s@]+.[^s@]{2,}$/.test(s); }
+  function isValidEmail(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s); }
   function isValidPhone(s) { return /^[6-9]\d{9}$/.test(s); }
 
   /* TOAST NOTIFICATION */
