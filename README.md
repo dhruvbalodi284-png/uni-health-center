@@ -218,7 +218,7 @@ A guided stepper flow that takes patients from doctor selection to confirmed app
 - **PhonePe** → `phonepe://` app deep link
 - **Google Pay** → `gpay://` app deep link
 - Pre-filled with exact consultation fee
-- Verified UPI ID: `7906831490@superyes`
+- Verified UPI ID: `@upi id`
 - One-click copy UPI ID button
 
 </td>
